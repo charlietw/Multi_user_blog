@@ -1,0 +1,68 @@
+                <div class="row">
+                    <div class="col-sm-12">
+                        <hr>
+                        <h3>{{b.subject}}</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12 pb-1">
+                        {{b._render_text | safe}}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12 pb-1">
+                        Posted on {{b.created.strftime('%d-%m-%y')}}
+                        at {{b.created.strftime('%H:%M')}}
+                        by {{b.user.username}}
+                    </div>
+                    <form method="post" class="col-sm-12 pb-2">
+                        <input type="submit" class="btn btn-sm btn-secondary" name="edit" value="Edit">
+                        <input type="submit" class="btn btn-sm btn-secondary" name="delete" value="Delete">
+                        <input type="submit" class="btn btn-sm btn-secondary" name="like" value="Like">
+                        Likes: {{b.count_likes()}}
+                        <input type="hidden" name="blogid" value="{{blog_id}}">
+                    </form>
+                </div>
+                <div class="row">
+                    <div class="error col-sm-12">
+                        {{error}}
+                    </div>
+                </div>
+
+                    <!-- Comments area -->
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h5>Comments:</h5>
+                    </div>
+                </div>
+                {%for c in comments%}
+                <div class="row">
+                    <div class="col-sm-6">
+                        {{c.comment}}
+                    </div>
+                    <div class="col-sm-6 text-sm-right">
+                        Posted by {{c.user.username}} on {{c.created.strftime('%d-%m-%y')}} at {{c.created.strftime('%H:%M')}}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h6 class="pt-2">Add a comment:</h6>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                    <form method="post">
+                        <textarea name="comment_text" class="col-sm-6"></textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <input type="submit" class="col-sm-1 btn btn-sm btn-primary m-1" name="comment" value="Comment">
+                    <input type="hidden" name="blogid" value="{{blog_id}}">
+                    </form>
+                </div>

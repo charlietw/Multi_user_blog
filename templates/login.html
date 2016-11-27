@@ -1,0 +1,27 @@
+        {% extends "head.html" %}
+        {% block content %}
+        <div class="row">
+            <h3 class="col-sm-12">Login:</h3>
+        </div>
+
+        <div class="row">
+            <form method="post" class="col-sm-6">
+                <table class="table text-left">
+                    <tr>
+                        <td> Username: </td>
+                        <td> <input type="text" name="username"></td>
+                    </tr>
+                    <tr>
+                        <td> Password: </td>
+                        <td> <input type="password" name="password"></td>
+                    </tr>
+                </table>
+                <div class="error">{{error}}</div>
+            <input type="submit">
+            </form>
+        </div>
+        <div class="row">
+            <p class="col-sm-6">Or, sign up <a href="signup">here</a>.</p>
+        </div>
+
+        {% endblock %}

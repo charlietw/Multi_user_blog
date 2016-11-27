@@ -1,0 +1,16 @@
+body {
+    font-family: 'Rokkitt', serif;
+}
+
+hr {
+    border-top: 2px solid;
+}
+
+.error {
+    color:red;
+}
+
+.test {
+    text-align: right;
+}
+

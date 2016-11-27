@@ -1,0 +1,24 @@
+        {% extends "head.html" %}
+        {% block content %}
+
+        <div class="row">
+            <div class="col-sm-6">
+                <h3>Da blog:</h3>
+            </div>
+            <div class="col-sm-6 text-sm-right">
+                <p>You are logged in as {{user.username}}</p>
+                <p><a href="blog/newpost">New post</a> - <a href="blog/logout">Logout</a></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="error col-sm-12">
+                {{error}}
+            </div>
+        </div>
+        {% for b in blog_posts %}
+            {{b.render() | safe}}
+        {% endfor %}
+        <br><br>
+
+        {% endblock %}
+

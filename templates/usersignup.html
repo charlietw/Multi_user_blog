@@ -1,0 +1,37 @@
+        {% extends "head.html" %}
+        {% block content %}
+        <div class="row">
+            <h3 class="col-sm-12">User signup:</h3>
+        </div>
+        <div class="row">
+            <form method="post" class="col-sm-6">
+                <table class="table text-left">
+                    <tr>
+                        <td>Username: </td>
+                        <td> <input type="text" name="username" value="{{username_return}}"></td>
+                        <td class = "error">{{username_error}}</td>
+                    </tr>
+                    <tr>
+                        <td>Password: </td>
+                        <td> <input type="password" name="password" value=""></td>
+                        <td class = "error">{{password_error}}</td>
+                    </tr>
+                    <tr>
+                        <td>Verify password: </td>
+                        <td> <input type="password" name="verify" value=""></td>
+                        <td class = "error">{{verify_error}}</td>
+                    </tr>
+                    <tr>
+                        <td>Email (optional): </td>
+                        <td> <input type="text" name="email" value="{{email_return}}"></td>
+                        <td class = "error">{{email_error}}</td>
+                    </tr>
+                </table>
+            <input type="submit">
+            </form>
+        </div>
+
+        <div class="row">
+            <p class="col-sm-6">Already a user? Click <a href="login">here</a>.</p>
+        </div>
+        {% endblock %}
