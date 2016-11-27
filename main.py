@@ -114,9 +114,26 @@ class Handler(webapp2.RequestHandler):
             return True
 
         # Checks to see that the blog post was posted by the logged in user
-    def check_blog_author(self, user_id, blog_post_id):
+    def check_author(self, user_id, blog_post_id):
             if user_id == blog_post_id:
                 return True
+
+    def delete_object(self, model, obj_id, user, error):
+        object_to_delete = model.get_by_id(int(obj_id))
+        current_user = user.key()
+        object_author = object_to_delete.user.key()
+        # Checks if the logged in user posted the blog.
+        if self.check_author(current_user, object_author):
+            object_to_delete.delete()
+            # Removes the initial error
+            error = ""
+            time.sleep(1)
+        self.render(
+            "blog.html",
+            blog_posts=self.blog_posts,
+            user=self.get_user_id(),
+            error=error)
+
 
 # User sign-up stuff
 
@@ -301,25 +318,27 @@ class BlogHandler(Handler):
             self.redirect("/blog/login")
         else:
             user = self.get_user_id()
-            # Picks out the ID from the relevant
-            # blog from the hidden input in the html
-            blog_post = Blog.get_by_id(int(self.request.get("blogid")))
             current_user = user.key()
-            blog_author = blog_post.user.key()
 
             if self.request.POST.get("comment"):
                 # Puts comment in datastore
+                blog_post = Blog.get_by_id(int(self.request.get("blogid")))
                 comment = self.request.get("comment_text")
                 entry = Comment(
                                 user=user,
                                 blog_post=blog_post,
                                 comment=comment)
                 entry.put()
+                time.sleep(1)
                 self.redirect("/blog")
 
             elif self.request.POST.get("edit"):
+                # Picks out the ID from the relevant
+                # blog from the hidden input in the html
+                blog_post = Blog.get_by_id(int(self.request.get("blogid")))
+                blog_author = blog_post.user.key()
                 error = "You may only edit your own posts."
-                if self.check_blog_author(user.key(), blog_post.user.key()):
+                if self.check_author(current_user, blog_author):
                     self.redirect(
                                 "/blog/edit?blog_post=%s"
                                 % blog_post.key().id())
@@ -331,22 +350,18 @@ class BlogHandler(Handler):
                         error=error)
 
             elif self.request.POST.get("delete"):
-                error = "You may only delete your own posts."
-                # Checks if the logged in user posted the blog.
-                if self.check_blog_author(current_user, blog_author):
-                    blog_post.delete()
-                    # Removes the initial error
-                    error = ""
-                    time.sleep(1)
-                self.render(
-                    "blog.html",
-                    blog_posts=self.blog_posts,
-                    user=self.get_user_id(),
-                    error=error)
+                blog_id = self.request.get("blogid")
+                self.delete_object(
+                                    Blog,
+                                    blog_id,
+                                    user,
+                                    "You may only delete your own posts.")
 
             elif self.request.POST.get("like"):
+                blog_post = Blog.get_by_id(int(self.request.get("blogid")))
+                blog_author = blog_post.user.key()
                 error = "You cannot like your own posts."
-                if not self.check_blog_author(current_user, blog_author):
+                if not self.check_author(current_user, blog_author):
                     # Checking to see if the user has liked this post before
                     like_search = db.GqlQuery(
                         "SELECT * FROM Likes WHERE user=:1 AND blog_post=:2",
@@ -367,6 +382,31 @@ class BlogHandler(Handler):
                     blog_posts=self.blog_posts,
                     user=user,
                     error=error)
+
+            elif self.request.POST.get("commentdelete"):
+                comment = self.request.get("comment_id")
+                self.delete_object(
+                                    Comment,
+                                    comment,
+                                    user,
+                                    "You may only delete your own comments.")
+
+            elif self.request.POST.get("commentedit"):
+                comment = Comment.get_by_id(
+                                        int(self.request.get("comment_id")))
+                comment_author = comment.user.key()
+                error = "You may only edit your own comments."
+                if self.check_author(current_user, comment_author):
+                    self.redirect(
+                            "/blog/editcomment?commentid=%s"
+                            % comment.key().id())
+                else:
+                    self.render(
+                        "blog.html",
+                        blog_posts=self.blog_posts,
+                        user=self.get_user_id(),
+                        error=error)
+
 
 # POST INPUT PAGE i.e. /blog/newpost
 
@@ -389,14 +429,15 @@ class NewPostHandler(Handler):
                 entry = Blog(subject=subject, content=content, user=user)
                 entry.put()
                 blogid = str(entry.key().id())
-                self.redirect("/blog/%s" % blogid)
+                time.sleep(1)
+                self.redirect("/blog")
             else:
                 error = "Please enter both 'subject' and 'content'"
                 self.render(
                     "newpost.html",
-                    error=error,
-                    subject=subject,
-                    content=content)
+                        error=error,
+                        subject=subject,
+                        content=content)
 
 # EDITS
 
@@ -418,34 +459,76 @@ class EditHandler(Handler):
         if not self.user:
             self.redirect("/blog/login")
         else:
-            # Gets the id from the hidden input in the form
-            blogid = Blog.get_by_id(int(self.request.get("blogid")))
-            # Modifies the entity in the datastore
-            blogid.subject = self.request.get("subject")
-            blogid.content = self.request.get("content")
-            blogid.put()
-            time.sleep(1)
-            self.redirect("/blog")
+            if self.request.POST.get("cancel"):
+                self.redirect("/blog")
+            else:
+                user = self.get_user_id()
+                current_user = user.key()
+                # Gets the id from the hidden input in the form
+                blogid = Blog.get_by_id(int(self.request.get("blogid")))
+                if self.check_author(current_user, blogid.user.key()):
+                    # Modifies the entity in the datastore
+                    blogid.subject = self.request.get("subject")
+                    blogid.content = self.request.get("content")
+                    blogid.put()
+                    time.sleep(1)
+                    self.redirect("/blog")
+                else:
+                    self.redirect("/blog")
+
+class CommentEditHandler(Handler):
+    def get(self):
+        if not self.user:
+            self.redirect("/blog/login")
+        else:
+            # Getting the comment id from the URL
+            comment = Comment.get_by_id(int(self.request.get("commentid")))
+            self.render(
+                "editcomment.html",
+                comment=comment.comment,
+                commentid=comment.key().id())
+
+    def post(self):
+        if not self.user:
+            self.redirect("/blog/login")
+        else:
+            if self.request.POST.get("cancel"):
+                self.redirect("/blog")
+            else:
+                user = self.get_user_id()
+                current_user = user.key()
+                # Gets the id from the hidden input in the form
+                commentid = Comment.get_by_id(
+                                    int(self.request.get("commentid")))
+                if self.check_author(current_user, commentid.user.key()):
+                    # Modifies the entity in the datastore
+                    commentid.comment = self.request.get("comment")
+                    commentid.put()
+                    time.sleep(1)
+                    self.redirect("/blog")
+                else:
+                    self.redirect("/blog")
 
 # ONE POST PAGE:
 
 
-class PostPage(Handler):
-    def get(self, postid):
-        # takes 'postid' as 'blogid' from NewPostHandler
-        retrieve_post_key = db.Key.from_path('Blog', int(postid))
-        post = db.get(retrieve_post_key)
-        if not post:
-            self.error(404)
-            return
-        self.render("permalink.html", post=post)
+# class PostPage(Handler):
+#     def get(self, postid):
+#         # takes 'postid' as 'blogid' from NewPostHandler
+#         retrieve_post_key = db.Key.from_path('Blog', int(postid))
+#         post = db.get(retrieve_post_key)
+#         if not post:
+#             self.error(404)
+#             return
+#         self.render("permalink.html", post=post)
 
 app = webapp2.WSGIApplication([
     ('/blog', BlogHandler),
     ('/blog/edit', EditHandler),
+    ('/blog/editcomment', CommentEditHandler),
     ('/blog/', BlogHandler),
     ('/blog/newpost', NewPostHandler),
-    ('/blog/([0-9]+)', PostPage),
+    # ('/blog/([0-9]+)', PostPage),
     ('/blog/signup', UserSignUpHandler),
     ('/blog/login', LoginHandler),
     ('/blog/logout', LogoutHandler),

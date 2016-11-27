@@ -4,17 +4,13 @@
         <form method="post">
             <table>
                 <tr>
-                    <td class="label">Subject:</td>
-                    <td><input type="text" name="subject" value="{{subject}}"></td>
-                </tr>
-                <tr>
-                    <td class="label">Content:</td>
-                    <td><textarea name="content">{{content}}</textarea></td>
+                    <td class="label">Comment:</td>
+                    <td><textarea name="comment">{{comment}}</textarea></td>
                 </tr>
                 </table>
             <div class="error">{{error}}</div>
             <br>
-            <input type="hidden" name="blogid" value="{{blog_id}}">
+            <input type="hidden" name="commentid" value="{{commentid}}">
             <button type="submit" name="submit" value="Submit" />Submit</button>
             <button type="cancel" name="cancel" value="Cancel" />Cancel</button>
             <br>

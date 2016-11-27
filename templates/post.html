@@ -42,8 +42,15 @@
                     <div class="col-sm-6">
                         {{c.comment}}
                     </div>
-                    <div class="col-sm-6 text-sm-right">
+                    <div class="col-sm-4 text-sm-right">
                         Posted by {{c.user.username}} on {{c.created.strftime('%d-%m-%y')}} at {{c.created.strftime('%H:%M')}}
+                    </div>
+                    <div class="col-sm-2">
+                        <form method="post">
+                            <input type="submit" class="btn btn-sm btn-secondary" name="commentedit" value="Edit">
+                            <input type="submit" class="btn btn-sm btn-secondary" name="commentdelete" value="Delete">
+                            <input type="hidden" name="comment_id" value="{{c.key().id()}}">
+                        </form>
                     </div>
                 </div>
                 {% endfor %}
