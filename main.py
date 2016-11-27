@@ -392,7 +392,8 @@ class BlogHandler(Handler):
                                     "You may only delete your own comments.")
 
             elif self.request.POST.get("commentedit"):
-                comment = Comment.get_by_id(int(self.request.get("comment_id")))
+                comment = Comment.get_by_id(
+                                        int(self.request.get("comment_id")))
                 comment_author = comment.user.key()
                 error = "You may only edit your own comments."
                 if self.check_author(current_user, comment_author):
@@ -458,14 +459,17 @@ class EditHandler(Handler):
         if not self.user:
             self.redirect("/blog/login")
         else:
-            # Gets the id from the hidden input in the form
-            blogid = Blog.get_by_id(int(self.request.get("blogid")))
-            # Modifies the entity in the datastore
-            blogid.subject = self.request.get("subject")
-            blogid.content = self.request.get("content")
-            blogid.put()
-            time.sleep(1)
-            self.redirect("/blog")
+            if self.request.POST.get("cancel"):
+                self.redirect("/blog")
+            else:
+                # Gets the id from the hidden input in the form
+                blogid = Blog.get_by_id(int(self.request.get("blogid")))
+                # Modifies the entity in the datastore
+                blogid.subject = self.request.get("subject")
+                blogid.content = self.request.get("content")
+                blogid.put()
+                time.sleep(1)
+                self.redirect("/blog")
 
 class CommentEditHandler(Handler):
     def get(self):
@@ -483,13 +487,17 @@ class CommentEditHandler(Handler):
         if not self.user:
             self.redirect("/blog/login")
         else:
-            # Gets the id from the hidden input in the form
-            commentid = Comment.get_by_id(int(self.request.get("commentid")))
-            # Modifies the entity in the datastore
-            commentid.comment = self.request.get("comment")
-            commentid.put()
-            time.sleep(1)
-            self.redirect("/blog")
+            if self.request.POST.get("cancel"):
+                self.redirect("/blog")
+            else:
+                # Gets the id from the hidden input in the form
+                commentid = Comment.get_by_id(
+                                    int(self.request.get("commentid")))
+                # Modifies the entity in the datastore
+                commentid.comment = self.request.get("comment")
+                commentid.put()
+                time.sleep(1)
+                self.redirect("/blog")
 
 # ONE POST PAGE:
 
